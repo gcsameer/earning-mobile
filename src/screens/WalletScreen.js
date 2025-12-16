@@ -6,9 +6,11 @@ import {
   FlatList,
   RefreshControl,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import api from '../config/api';
+import RewardedAdButton from '../components/RewardedAd';
 
 export default function WalletScreen({ navigation }) {
   const { user } = useAuth();
@@ -27,6 +29,29 @@ export default function WalletScreen({ navigation }) {
       console.error('Error loading wallet:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRewardedAdComplete = async (reward) => {
+    try {
+      // Call backend API to credit coins
+      const response = await api.post('/ads/rewarded/complete/');
+      Alert.alert(
+        'Success!',
+        `You earned ${response.data.reward_coins} coins! Your new balance is ${response.data.new_balance} coins.`,
+        [
+          {
+            text: 'OK',
+            onPress: () => loadWallet(), // Refresh wallet balance
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('Error crediting rewarded ad:', error);
+      Alert.alert(
+        'Error',
+        error.response?.data?.detail || 'Failed to credit coins. Please try again.'
+      );
     }
   };
 
@@ -66,6 +91,19 @@ export default function WalletScreen({ navigation }) {
         >
           <Text style={styles.withdrawButtonText}>Withdraw</Text>
         </TouchableOpacity>
+      </View>
+
+      {/* Rewarded Ad Section */}
+      <View style={styles.rewardedAdCard}>
+        <Text style={styles.rewardedAdTitle}>🎬 Watch Ad to Earn Coins</Text>
+        <Text style={styles.rewardedAdDescription}>
+          Watch a short ad and earn 10 coins instantly!
+        </Text>
+        <RewardedAdButton
+          onRewardEarned={handleRewardedAdComplete}
+          buttonText="▶️ Watch Ad & Earn 10 Coins"
+          style={styles.rewardedAdButton}
+        />
       </View>
 
       <Text style={styles.transactionsTitle}>Recent Transactions</Text>
@@ -179,6 +217,29 @@ const styles = StyleSheet.create({
   emptyText: {
     color: '#94a3b8',
     fontSize: 16,
+  },
+  rewardedAdCard: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 20,
+    margin: 16,
+    marginTop: 0,
+    alignItems: 'center',
+  },
+  rewardedAdTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  rewardedAdDescription: {
+    fontSize: 14,
+    color: '#cbd5e1',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  rewardedAdButton: {
+    width: '100%',
   },
 });
 

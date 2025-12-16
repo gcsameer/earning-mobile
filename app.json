@@ -1,13 +1,11 @@
 {
   "expo": {
     "name": "NepEarn",
-    "slug": "nep-earn-mobile",
+    "slug": "nepearn",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#0f172a"
     },
@@ -20,26 +18,34 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0f172a"
       },
-      "package": "com.nepearn.app"
+      "package": "com.nepearn.app",
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
     },
     "extra": {
-      "apiBaseUrl": "https://earning-backend-production.up.railway.app"
+      "apiBaseUrl": "https://earning-backend-production.up.railway.app",
+      "eas": {
+        "projectId": "daad5926-5862-416d-af68-48b403617bb7"
+      }
     },
     "plugins": [
       [
-        "react-native-google-mobile-ads",
+        "expo-build-properties",
         {
-          "androidAppId": "ca-app-pub-8858320671117320~8435057976",
-          "iosAppId": "ca-app-pub-8858320671117320~8435057976"
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "minSdkVersion": 21
+          }
         }
       ]
-    ]
+    ],
+    "owner": "breakout8848s-organization"
   }
 }
-

@@ -8,16 +8,28 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
+// import { useFocusEffect } from '@react-navigation/native'; // Removed - using useEffect instead
 import api from '../config/api';
 import AdBanner from '../components/AdBanner';
+import { useInterstitialAd } from '../components/InterstitialAd';
 
 export default function TasksScreen({ navigation }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { showInterstitial } = useInterstitialAd();
 
   useEffect(() => {
     loadTasks();
   }, []);
+
+  // Show interstitial ad when screen is focused (user navigates to this screen)
+  useEffect(() => {
+    // Show ad after a short delay to avoid interrupting navigation
+    const timer = setTimeout(() => {
+      showInterstitial();
+    }, 2000); // 2 second delay
+    return () => clearTimeout(timer);
+  }, []); // Only on mount
 
   const loadTasks = async () => {
     try {
@@ -35,6 +47,8 @@ export default function TasksScreen({ navigation }) {
       const response = await api.post(`/tasks/start/${taskId}/`, {
         device_id: 'mobile-app',
       });
+      // Show interstitial ad after starting task
+      showInterstitial();
       Alert.alert('Success', 'Task started! Complete it to earn coins.');
     } catch (error) {
       Alert.alert('Error', error.response?.data?.detail || 'Failed to start task');
