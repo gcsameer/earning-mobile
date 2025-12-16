@@ -24,11 +24,12 @@
       "package": "com.nepearn.app",
       "permissions": [
         "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "INTERNET",
         "ACCESS_NETWORK_STATE"
       ]
     },
-    "web": {
-    },
+    "web": {},
     "extra": {
       "apiBaseUrl": "https://earning-backend-production.up.railway.app",
       "eas": {
@@ -48,6 +49,12 @@
         }
       ]
     ],
-    "owner": "breakout8848s-organization"
+    "owner": "breakout8848s-organization",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/daad5926-5862-416d-af68-48b403617bb7"
+    }
   }
 }
