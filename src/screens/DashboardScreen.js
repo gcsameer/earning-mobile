@@ -17,27 +17,64 @@ import { useInterstitialAd } from '../components/InterstitialAd';
 export default function DashboardScreen({ navigation }) {
   const { user } = useAuth();
   const [wallet, setWallet] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
+  const [streak, setStreak] = useState(null);
   const [loading, setLoading] = useState(true);
   const { showInterstitial } = useInterstitialAd();
 
   useEffect(() => {
-    loadWallet();
+    loadAll();
   }, []);
 
-  const loadWallet = async () => {
+  const loadAll = async () => {
+    setLoading(true);
     try {
-      const response = await api.get('/wallet/');
-      setWallet(response.data);
+      // Load wallet
+      const walletRes = await api.get('/wallet/');
+      setWallet(walletRes.data);
+
+      // Load analytics (optional)
+      try {
+        const analyticsRes = await api.get('/analytics/');
+        setAnalytics(analyticsRes.data);
+      } catch (e) {
+        // Analytics optional - fail silently
+      }
+
+      // Load streak (optional)
+      try {
+        const streakRes = await api.post('/streak/');
+        setStreak(streakRes.data);
+      } catch (e) {
+        // Streak optional - fail silently
+      }
     } catch (error) {
-      console.error('Error loading wallet:', error);
+      console.error('Error loading dashboard:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const onRefresh = () => {
-    setLoading(true);
-    loadWallet();
+    loadAll();
+  };
+
+  const claimBonus = async () => {
+    try {
+      const response = await api.post('/daily-bonus/');
+      Alert.alert(
+        'Success!',
+        `Daily bonus claimed: ${response.data.bonus_coins} coins!`,
+        [
+          {
+            text: 'OK',
+            onPress: () => loadAll(), // Refresh dashboard
+          },
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Error', error.response?.data?.detail || 'Failed to claim bonus.');
+    }
   };
 
   const handleRewardedAdComplete = async (reward) => {
@@ -80,6 +117,50 @@ export default function DashboardScreen({ navigation }) {
             ≈ Rs. {wallet?.approx_balance_rs || '0.00'}
           </Text>
         </View>
+
+        {/* Daily Bonus Button */}
+        <TouchableOpacity
+          style={styles.bonusButton}
+          onPress={claimBonus}
+        >
+          <Text style={styles.bonusButtonText}>🎁 Claim Daily Bonus</Text>
+        </TouchableOpacity>
+
+        {/* Login Streak */}
+        {streak && (
+          <View style={styles.streakCard}>
+            <Text style={styles.streakLabel}>🔥 Login Streak</Text>
+            <Text style={styles.streakValue}>{streak.current_streak} days</Text>
+            {streak.bonus > 0 && (
+              <Text style={styles.streakBonus}>+{streak.bonus} coins bonus!</Text>
+            )}
+          </View>
+        )}
+
+        {/* Analytics Overview */}
+        {analytics && (
+          <View style={styles.analyticsContainer}>
+            <Text style={styles.analyticsTitle}>📊 Your Stats</Text>
+            <View style={styles.analyticsGrid}>
+              <View style={styles.analyticsItem}>
+                <Text style={styles.analyticsValue}>{analytics.earnings?.today || 0}</Text>
+                <Text style={styles.analyticsLabel}>Today</Text>
+              </View>
+              <View style={styles.analyticsItem}>
+                <Text style={styles.analyticsValue}>{analytics.earnings?.this_week || 0}</Text>
+                <Text style={styles.analyticsLabel}>This Week</Text>
+              </View>
+              <View style={styles.analyticsItem}>
+                <Text style={styles.analyticsValue}>{analytics.tasks?.total_completed || 0}</Text>
+                <Text style={styles.analyticsLabel}>Tasks</Text>
+              </View>
+              <View style={styles.analyticsItem}>
+                <Text style={styles.analyticsValue}>{analytics.referrals?.total || 0}</Text>
+                <Text style={styles.analyticsLabel}>Referrals</Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         <View style={styles.actions}>
           <TouchableOpacity
@@ -244,6 +325,79 @@ const styles = StyleSheet.create({
   },
   rewardedAdButton: {
     width: '100%',
+  },
+  bonusButton: {
+    backgroundColor: '#f59e0b',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  bonusButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  streakCard: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+  },
+  streakLabel: {
+    fontSize: 14,
+    color: '#94a3b8',
+    marginBottom: 8,
+  },
+  streakValue: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#f59e0b',
+    marginBottom: 4,
+  },
+  streakBonus: {
+    fontSize: 14,
+    color: '#10b981',
+    fontWeight: '600',
+  },
+  analyticsContainer: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  analyticsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  analyticsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  analyticsItem: {
+    width: '48%',
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  analyticsValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#10b981',
+    marginBottom: 4,
+  },
+  analyticsLabel: {
+    fontSize: 12,
+    color: '#94a3b8',
   },
 });
 

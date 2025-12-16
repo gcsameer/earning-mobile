@@ -7,15 +7,21 @@ import {
   TouchableOpacity,
   RefreshControl,
   Alert,
+  Modal,
+  ScrollView,
 } from 'react-native';
-// import { useFocusEffect } from '@react-navigation/native'; // Removed - using useEffect instead
 import api from '../config/api';
 import AdBanner from '../components/AdBanner';
 import { useInterstitialAd } from '../components/InterstitialAd';
+import ScratchCard from '../components/tasks/ScratchCard';
+import SpinWheel from '../components/tasks/SpinWheel';
+import Puzzle from '../components/tasks/Puzzle';
+import Quiz from '../components/tasks/Quiz';
 
 export default function TasksScreen({ navigation }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeGame, setActiveGame] = useState(null);
   const { showInterstitial } = useInterstitialAd();
 
   useEffect(() => {
@@ -42,9 +48,27 @@ export default function TasksScreen({ navigation }) {
     }
   };
 
-  const handleStartTask = async (taskId) => {
+  const handleStartTask = async (task) => {
+    // Offerwall tasks => navigate to offerwall screen
+    if (task.type === 'offerwall') {
+      navigation.navigate('Offerwall');
+      return;
+    }
+    if (task.type === 'tapjoy_offerwall') {
+      navigation.navigate('TapjoyOfferwall');
+      return;
+    }
+
+    // Game-based tasks (instant completion)
+    const gameTypes = ['scratch_card', 'spin_wheel', 'puzzle', 'quiz'];
+    if (gameTypes.includes(task.type)) {
+      setActiveGame(task);
+      return;
+    }
+
+    // Regular tasks (with countdown)
     try {
-      const response = await api.post(`/tasks/start/${taskId}/`, {
+      const response = await api.post(`/tasks/start/${task.id}/`, {
         device_id: 'mobile-app',
       });
       // Show interstitial ad after starting task
@@ -55,25 +79,98 @@ export default function TasksScreen({ navigation }) {
     }
   };
 
-  const renderTask = ({ item, index }) => (
-    <View>
-      <View style={styles.taskCard}>
-        <Text style={styles.taskTitle}>{item.title}</Text>
-        <Text style={styles.taskDescription}>{item.description}</Text>
-        <View style={styles.taskFooter}>
-          <Text style={styles.rewardText}>Reward: {item.reward_coins} coins</Text>
-          <TouchableOpacity
-            style={styles.startButton}
-            onPress={() => handleStartTask(item.id)}
-          >
-            <Text style={styles.startButtonText}>Start</Text>
-          </TouchableOpacity>
+  const handleGameComplete = (result) => {
+    setActiveGame(null);
+    Alert.alert(
+      'Success!',
+      `You earned ${result.reward_coins} coins! Your new balance is ${result.new_balance} coins.`,
+      [
+        {
+          text: 'OK',
+          onPress: () => loadTasks(), // Refresh tasks
+        },
+      ]
+    );
+  };
+
+  const renderGameModal = () => {
+    if (!activeGame) return null;
+
+    let GameComponent = null;
+    switch (activeGame.type) {
+      case 'scratch_card':
+        GameComponent = ScratchCard;
+        break;
+      case 'spin_wheel':
+        GameComponent = SpinWheel;
+        break;
+      case 'puzzle':
+        GameComponent = Puzzle;
+        break;
+      case 'quiz':
+        GameComponent = Quiz;
+        break;
+      default:
+        return null;
+    }
+
+    return (
+      <Modal
+        visible={!!activeGame}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setActiveGame(null)}
+      >
+        <ScrollView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setActiveGame(null)}
+            >
+              <Text style={styles.closeButtonText}>✕ Close</Text>
+            </TouchableOpacity>
+          </View>
+          <GameComponent task={activeGame} onComplete={handleGameComplete} />
+        </ScrollView>
+      </Modal>
+    );
+  };
+
+  const renderTask = ({ item, index }) => {
+    const gameTypes = ['scratch_card', 'spin_wheel', 'puzzle', 'quiz'];
+    const isGame = gameTypes.includes(item.type);
+    const isOfferwall = item.type === 'offerwall' || item.type === 'tapjoy_offerwall';
+    
+    return (
+      <View>
+        <View style={styles.taskCard}>
+          <Text style={styles.taskTitle}>{item.title}</Text>
+          <Text style={styles.taskDescription}>{item.description}</Text>
+          <View style={styles.taskFooter}>
+            {!isGame && !isOfferwall && (
+              <Text style={styles.rewardText}>Reward: {item.reward_coins} coins</Text>
+            )}
+            <TouchableOpacity
+              style={styles.startButton}
+              onPress={() => handleStartTask(item)}
+            >
+              <Text style={styles.startButtonText}>
+                {isOfferwall
+                  ? item.type === 'tapjoy_offerwall'
+                    ? 'Open Tapjoy'
+                    : 'Open Offerwall'
+                  : isGame
+                  ? '🎮 Play'
+                  : 'Start'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
+        {/* Show ad after every 3rd task */}
+        {(index + 1) % 3 === 0 && <AdBanner style={styles.adContainer} />}
       </View>
-      {/* Show ad after every 3rd task */}
-      {(index + 1) % 3 === 0 && <AdBanner style={styles.adContainer} />}
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -93,6 +190,7 @@ export default function TasksScreen({ navigation }) {
         }
         ListFooterComponent={<AdBanner style={styles.adContainer} />}
       />
+      {renderGameModal()}
     </View>
   );
 }
@@ -152,6 +250,25 @@ const styles = StyleSheet.create({
   },
   adContainer: {
     marginVertical: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  closeButton: {
+    padding: 8,
+  },
+  closeButtonText: {
+    color: '#10b981',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

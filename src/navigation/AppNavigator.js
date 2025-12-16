@@ -13,6 +13,7 @@ import TasksScreen from '../screens/TasksScreen';
 import WalletScreen from '../screens/WalletScreen';
 import ReferralsScreen from '../screens/ReferralsScreen';
 import OfferwallScreen from '../screens/OfferwallScreen';
+import TapjoyOfferwallScreen from '../screens/TapjoyOfferwallScreen';
 import WithdrawScreen from '../screens/WithdrawScreen';
 
 const Stack = createNativeStackNavigator();
@@ -125,7 +126,12 @@ export default function AppNavigator() {
             <Stack.Screen
               name="Offerwall"
               component={OfferwallScreen}
-              options={{ title: 'Offerwall' }}
+              options={{ title: 'CPX Offerwall' }}
+            />
+            <Stack.Screen
+              name="TapjoyOfferwall"
+              component={TapjoyOfferwallScreen}
+              options={{ title: 'Tapjoy Offerwall' }}
             />
             <Stack.Screen
               name="Withdraw"
