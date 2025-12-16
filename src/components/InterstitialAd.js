@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
-import mobileAds, { InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
 
 /**
- * Interstitial Ad Component
- * Ad Unit ID: ca-app-pub-8858320671117320/4972958131
+ * InterstitialAd Component - Placeholder
+ * AdMob temporarily disabled to fix build errors
+ * Will be re-enabled after successful build
  */
 export default function InterstitialAd({ 
   adUnitId,
@@ -14,153 +14,34 @@ export default function InterstitialAd({
   autoShow = false
 }) {
   const [loaded, setLoaded] = useState(false);
-  const interstitial = useRef(null);
-
-  // Default ad unit ID if not provided
-  const defaultAdUnitId = 'ca-app-pub-8858320671117320/4972958131';
-  const unitId = adUnitId || defaultAdUnitId;
 
   useEffect(() => {
-    // Initialize Google Mobile Ads
-    mobileAds()
-      .initialize()
-      .then(adapterStatuses => {
-        console.log('AdMob initialized:', adapterStatuses);
-      });
-
-    // Create interstitial ad instance
-    interstitial.current = InterstitialAd.createForAdRequest(unitId, {
-      requestNonPersonalizedAdsOnly: true,
-    });
-
-    // Load ad
-    const unsubscribeLoaded = interstitial.current.addAdEventListener(
-      AdEventType.LOADED,
-      () => {
-        setLoaded(true);
-        console.log('Interstitial ad loaded');
-        // Auto-show if enabled
-        if (autoShow && interstitial.current) {
-          interstitial.current.show();
-        }
-      },
-    );
-
-    const unsubscribeClosed = interstitial.current.addAdEventListener(
-      AdEventType.CLOSED,
-      () => {
-        console.log('Interstitial ad closed');
-        setLoaded(false);
-        if (onAdClosed) {
-          onAdClosed();
-        }
-        // Reload ad for next time
-        if (autoLoad && interstitial.current) {
-          interstitial.current.load();
-        }
-      },
-    );
-
-    const unsubscribeError = interstitial.current.addAdEventListener(
-      AdEventType.ERROR,
-      (error) => {
-        console.error('Interstitial ad error:', error);
-        setLoaded(false);
-        if (onAdFailedToLoad) {
-          onAdFailedToLoad(error);
-        }
-      },
-    );
-
-    // Load the ad if autoLoad is enabled
+    // Placeholder - AdMob will be re-enabled after build succeeds
     if (autoLoad) {
-      interstitial.current.load();
+      // Simulate loading (but don't actually load)
+      setLoaded(false);
     }
-
-    return () => {
-      unsubscribeLoaded();
-      unsubscribeClosed();
-      unsubscribeError();
-    };
-  }, [unitId, autoLoad, autoShow, onAdClosed, onAdFailedToLoad]);
+  }, [autoLoad]);
 
   const showAd = () => {
-    if (loaded && interstitial.current) {
-      interstitial.current.show();
-    } else {
-      console.warn('Interstitial ad not ready');
-      if (onAdFailedToLoad) {
-        onAdFailedToLoad(new Error('Ad not loaded'));
-      }
-    }
+    // Placeholder - AdMob will be re-enabled after build succeeds
+    Alert.alert(
+      'AdMob Temporarily Disabled',
+      'AdMob has been temporarily disabled to fix build errors. It will be re-enabled after the build succeeds.',
+      [{ 
+        text: 'OK',
+        onPress: () => {
+          if (onAdClosed) onAdClosed();
+        }
+      }]
+    );
   };
-
-  // Expose show method via ref (for parent components)
-  React.useImperativeHandle(React.forwardRef(() => null), () => ({
-    show: showAd,
-    isLoaded: loaded,
-  }));
-
-  return null; // Interstitial ads don't render anything
-}
-
-/**
- * Hook to use Interstitial Ad
- * Usage: const { showInterstitial, isLoaded } = useInterstitialAd();
- */
-export function useInterstitialAd(adUnitId) {
-  const [loaded, setLoaded] = useState(false);
-  const interstitialRef = useRef(null);
 
   useEffect(() => {
-    const defaultAdUnitId = 'ca-app-pub-8858320671117320/4972958131';
-    const unitId = adUnitId || defaultAdUnitId;
-
-    // Initialize
-    mobileAds()
-      .initialize()
-      .then(() => {
-        interstitialRef.current = InterstitialAd.createForAdRequest(unitId, {
-          requestNonPersonalizedAdsOnly: true,
-        });
-
-        // Listen for loaded event
-        const unsubscribeLoaded = interstitialRef.current.addAdEventListener(
-          AdEventType.LOADED,
-          () => {
-            setLoaded(true);
-            console.log('Interstitial ad loaded (hook)');
-          },
-        );
-
-        // Listen for closed event
-        const unsubscribeClosed = interstitialRef.current.addAdEventListener(
-          AdEventType.CLOSED,
-          () => {
-            setLoaded(false);
-            // Reload for next time
-            interstitialRef.current.load();
-          },
-        );
-
-        // Load the ad
-        interstitialRef.current.load();
-
-        return () => {
-          unsubscribeLoaded();
-          unsubscribeClosed();
-        };
-      });
-  }, [adUnitId]);
-
-  const showInterstitial = () => {
-    if (loaded && interstitialRef.current) {
-      interstitialRef.current.show();
-    } else {
-      console.warn('Interstitial ad not ready');
+    if (autoShow) {
+      showAd();
     }
-  };
+  }, [autoShow]);
 
-  return { showInterstitial, isLoaded: loaded };
+  return null; // No UI for interstitial ads
 }
-

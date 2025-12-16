@@ -1,49 +1,40 @@
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
-import mobileAds from 'react-native-google-mobile-ads';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 
+/**
+ * AdBanner Component - Placeholder
+ * AdMob temporarily disabled to fix build errors
+ * Will be re-enabled after successful build
+ */
 export default function AdBanner({ adUnitId, style }) {
-  const bannerRef = useRef(null);
-
-  useEffect(() => {
-    // Initialize Google Mobile Ads
-    mobileAds()
-      .initialize()
-      .then(adapterStatuses => {
-        console.log('AdMob initialized:', adapterStatuses);
-      });
-  }, []);
-
-  // Default ad unit ID if not provided
-  const defaultAdUnitId = 'ca-app-pub-8858320671117320/6142924791';
-  const unitId = adUnitId || defaultAdUnitId;
-
+  // Placeholder for AdMob banner ad
+  // AdMob will be re-enabled after build succeeds
   return (
     <View style={[styles.container, style]}>
-      <mobileAds.Banner
-        ref={bannerRef}
-        unitId={unitId}
-        size={mobileAds.BannerSize.BANNER}
-        requestOptions={{
-          requestNonPersonalizedAdsOnly: true,
-        }}
-        onAdLoaded={() => {
-          console.log('Banner ad loaded');
-        }}
-        onAdFailedToLoad={(error) => {
-          console.error('Banner ad failed to load:', error);
-        }}
-      />
+      <Text style={styles.text}>📢 Ad Space</Text>
+      <Text style={styles.subtext}>AdMob temporarily disabled</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: '#1e293b',
+    padding: 16,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent',
-    marginVertical: 10,
+    minHeight: 50,
+    marginVertical: 8,
+  },
+  text: {
+    color: '#cbd5e1',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  subtext: {
+    color: '#94a3b8',
+    fontSize: 12,
+    marginTop: 4,
   },
 });
-

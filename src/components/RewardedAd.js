@@ -1,91 +1,42 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
-import mobileAds, { RewardedAd, RewardedAdEventType } from 'react-native-google-mobile-ads';
 
+/**
+ * RewardedAd Component - Placeholder
+ * AdMob temporarily disabled to fix build errors
+ * Will be re-enabled after successful build
+ */
 export default function RewardedAdButton({ 
   adUnitId, 
   onRewardEarned, 
   buttonText = 'Watch Ad to Earn Coins',
   disabled = false 
 }) {
-  const [loaded, setLoaded] = useState(false);
-  const rewarded = useRef(null);
-
-  // Default ad unit ID if not provided
-  const defaultAdUnitId = 'ca-app-pub-8858320671117320/6166975524';
-  const unitId = adUnitId || defaultAdUnitId;
-
-  useEffect(() => {
-    // Initialize Google Mobile Ads
-    mobileAds()
-      .initialize()
-      .then(adapterStatuses => {
-        console.log('AdMob initialized:', adapterStatuses);
-      });
-
-    // Create rewarded ad instance
-    rewarded.current = RewardedAd.createForAdRequest(unitId, {
-      requestNonPersonalizedAdsOnly: true,
-    });
-
-    // Load ad
-    const unsubscribeLoaded = rewarded.current.addAdEventListener(
-      RewardedAdEventType.LOADED,
-      () => {
-        setLoaded(true);
-        console.log('Rewarded ad loaded');
-      },
-    );
-
-    const unsubscribeEarned = rewarded.current.addAdEventListener(
-      RewardedAdEventType.EARNED_REWARD,
-      (reward) => {
-        console.log('User earned reward:', reward);
-        if (onRewardEarned) {
-          onRewardEarned(reward);
-        }
-        // Reload ad for next time
-        setLoaded(false);
-        rewarded.current.load();
-      },
-    );
-
-    const unsubscribeError = rewarded.current.addAdEventListener(
-      RewardedAdEventType.ERROR,
-      (error) => {
-        console.error('Rewarded ad error:', error);
-        Alert.alert('Ad Error', 'Failed to load ad. Please try again later.');
-        setLoaded(false);
-      },
-    );
-
-    // Load the ad
-    rewarded.current.load();
-
-    return () => {
-      unsubscribeLoaded();
-      unsubscribeEarned();
-      unsubscribeError();
-    };
-  }, [unitId, onRewardEarned]);
+  const [loading, setLoading] = useState(false);
 
   const showAd = () => {
-    if (loaded && rewarded.current) {
-      rewarded.current.show();
-    } else {
-      Alert.alert('Ad Not Ready', 'Please wait for the ad to load.');
-    }
+    setLoading(true);
+    // Placeholder - AdMob will be re-enabled after build succeeds
+    setTimeout(() => {
+      setLoading(false);
+      Alert.alert(
+        'AdMob Temporarily Disabled',
+        'AdMob has been temporarily disabled to fix build errors. It will be re-enabled after the build succeeds.',
+        [{ text: 'OK' }]
+      );
+    }, 500);
   };
 
   return (
     <TouchableOpacity
-      style={[styles.button, (!loaded || disabled) && styles.buttonDisabled]}
+      style={[styles.button, (loading || disabled) && styles.buttonDisabled]}
       onPress={showAd}
-      disabled={!loaded || disabled}
+      disabled={loading || disabled}
     >
       <Text style={styles.buttonText}>
-        {loaded ? buttonText : 'Loading Ad...'}
+        {loading ? 'Loading...' : buttonText}
       </Text>
+      <Text style={styles.note}>AdMob temporarily disabled</Text>
     </TouchableOpacity>
   );
 }
@@ -98,6 +49,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    marginVertical: 8,
   },
   buttonDisabled: {
     backgroundColor: '#6b7280',
@@ -108,5 +60,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  note: {
+    color: '#ffffff',
+    fontSize: 10,
+    marginTop: 4,
+    opacity: 0.7,
+  },
 });
-
