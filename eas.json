@@ -19,9 +19,15 @@
       "node": "20.11.0"
     },
     "production": {
+      "distribution": "internal",
       "android": {
-        "buildType": "apk"
-      }
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://earning-backend-production.up.railway.app"
+      },
+      "node": "20.11.0"
     }
   },
   "submit": {
