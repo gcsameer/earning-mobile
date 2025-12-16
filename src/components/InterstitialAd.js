@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
 
 /**
  * InterstitialAd Component - Placeholder
@@ -25,16 +24,10 @@ export default function InterstitialAd({
 
   const showAd = () => {
     // Placeholder - AdMob will be re-enabled after build succeeds
-    Alert.alert(
-      'AdMob Temporarily Disabled',
-      'AdMob has been temporarily disabled to fix build errors. It will be re-enabled after the build succeeds.',
-      [{ 
-        text: 'OK',
-        onPress: () => {
-          if (onAdClosed) onAdClosed();
-        }
-      }]
-    );
+    // Silently fail (don't interrupt user experience)
+    if (onAdClosed) {
+      setTimeout(() => onAdClosed(), 100);
+    }
   };
 
   useEffect(() => {
@@ -44,4 +37,24 @@ export default function InterstitialAd({
   }, [autoShow]);
 
   return null; // No UI for interstitial ads
+}
+
+/**
+ * useInterstitialAd Hook - Placeholder
+ * AdMob temporarily disabled to fix build errors
+ * This hook is used in DashboardScreen and TasksScreen
+ */
+export function useInterstitialAd(adUnitId) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  const showInterstitial = () => {
+    // Placeholder - AdMob will be re-enabled after build succeeds
+    // Silently fail (don't interrupt user experience)
+    return Promise.resolve();
+  };
+
+  return {
+    isLoaded,
+    showInterstitial,
+  };
 }
