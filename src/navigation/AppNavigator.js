@@ -15,6 +15,15 @@ import ReferralsScreen from '../screens/ReferralsScreen';
 import OfferwallScreen from '../screens/OfferwallScreen';
 import TapjoyOfferwallScreen from '../screens/TapjoyOfferwallScreen';
 import WithdrawScreen from '../screens/WithdrawScreen';
+import TaskCountdownScreen from '../screens/TaskCountdownScreen';
+import AchievementsScreen from '../screens/AchievementsScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import AboutScreen from '../screens/AboutScreen';
+import ContactScreen from '../screens/ContactScreen';
+import FAQScreen from '../screens/FAQScreen';
+import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
+import TermsOfServiceScreen from '../screens/TermsOfServiceScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -72,6 +81,16 @@ function MainTabs() {
           title: 'Referrals',
           tabBarIcon: ({ color }) => (
             <Text style={{ color, fontSize: 20 }}>👥</Text>
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color }) => (
+            <Text style={{ color, fontSize: 20 }}>⚙️</Text>
           ),
         }}
       />
@@ -137,6 +156,46 @@ export default function AppNavigator() {
               name="Withdraw"
               component={WithdrawScreen}
               options={{ title: 'Withdraw' }}
+            />
+            <Stack.Screen
+              name="TaskCountdown"
+              component={TaskCountdownScreen}
+              options={{ title: 'Task in Progress' }}
+            />
+            <Stack.Screen
+              name="Achievements"
+              component={AchievementsScreen}
+              options={{ title: 'Achievements' }}
+            />
+            <Stack.Screen
+              name="Profile"
+              component={ProfileScreen}
+              options={{ title: 'Profile' }}
+            />
+            <Stack.Screen
+              name="About"
+              component={AboutScreen}
+              options={{ title: 'About Us' }}
+            />
+            <Stack.Screen
+              name="Contact"
+              component={ContactScreen}
+              options={{ title: 'Contact Us' }}
+            />
+            <Stack.Screen
+              name="FAQ"
+              component={FAQScreen}
+              options={{ title: 'FAQ' }}
+            />
+            <Stack.Screen
+              name="PrivacyPolicy"
+              component={PrivacyPolicyScreen}
+              options={{ title: 'Privacy Policy' }}
+            />
+            <Stack.Screen
+              name="TermsOfService"
+              component={TermsOfServiceScreen}
+              options={{ title: 'Terms of Service' }}
             />
           </>
         )}

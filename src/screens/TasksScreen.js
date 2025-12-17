@@ -66,14 +66,20 @@ export default function TasksScreen({ navigation }) {
       return;
     }
 
-    // Regular tasks (with countdown)
+    // Regular tasks (with countdown) - navigate to countdown screen
     try {
       const response = await api.post(`/tasks/start/${task.id}/`, {
         device_id: 'mobile-app',
       });
-      // Show interstitial ad after starting task
-      showInterstitial();
-      Alert.alert('Success', 'Task started! Complete it to earn coins.');
+      
+      const userTaskId = response.data?.user_task_id;
+      if (!userTaskId) {
+        Alert.alert('Error', 'No user_task_id returned from backend');
+        return;
+      }
+
+      // Navigate to countdown screen
+      navigation.navigate('TaskCountdown', { userTaskId });
     } catch (error) {
       Alert.alert('Error', error.response?.data?.detail || 'Failed to start task');
     }

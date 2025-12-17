@@ -48,7 +48,7 @@ export default function ReferralsScreen() {
     <View style={styles.userCard}>
       <View style={styles.userInfo}>
         <Text style={styles.username}>{item.username}</Text>
-        <Text style={styles.userCoins}>{item.coins} coins</Text>
+        <Text style={styles.userCoins}>+{item.referral_coins_earned || 50} coins</Text>
       </View>
     </View>
   );
@@ -70,6 +70,10 @@ export default function ReferralsScreen() {
         <View style={styles.stat}>
           <Text style={styles.statValue}>{referrals?.total_referred || 0}</Text>
           <Text style={styles.statLabel}>Total Referrals</Text>
+        </View>
+        <View style={styles.stat}>
+          <Text style={styles.statValue}>{referrals?.total_referral_coins || 0}</Text>
+          <Text style={styles.statLabel}>Coins Earned</Text>
         </View>
       </View>
 

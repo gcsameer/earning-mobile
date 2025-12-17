@@ -13,12 +13,15 @@ import api from '../config/api';
 import AdBanner from '../components/AdBanner';
 import RewardedAdButton from '../components/RewardedAd';
 import { useInterstitialAd } from '../components/InterstitialAd';
+import SocialShare from '../components/SocialShare';
 
 export default function DashboardScreen({ navigation }) {
   const { user } = useAuth();
   const [wallet, setWallet] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [streak, setStreak] = useState(null);
+  const [achievements, setAchievements] = useState(null);
+  const [challenges, setChallenges] = useState(null);
   const [loading, setLoading] = useState(true);
   const { showInterstitial } = useInterstitialAd();
 
@@ -47,6 +50,22 @@ export default function DashboardScreen({ navigation }) {
         setStreak(streakRes.data);
       } catch (e) {
         // Streak optional - fail silently
+      }
+
+      // Load achievements (optional)
+      try {
+        const achievementsRes = await api.get('/achievements/');
+        setAchievements(achievementsRes.data);
+      } catch (e) {
+        // Achievements optional - fail silently
+      }
+
+      // Load challenges (optional)
+      try {
+        const challengesRes = await api.get('/challenges/');
+        setChallenges(challengesRes.data);
+      } catch (e) {
+        // Challenges optional - fail silently
       }
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -77,6 +96,24 @@ export default function DashboardScreen({ navigation }) {
     }
   };
 
+  const claimChallenge = async (challengeId) => {
+    try {
+      const response = await api.post('/challenges/', { challenge_id: challengeId });
+      Alert.alert(
+        'Success!',
+        `Challenge reward claimed: ${response.data.reward} coins!`,
+        [
+          {
+            text: 'OK',
+            onPress: () => loadAll(), // Refresh dashboard
+          },
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Error', error.response?.data?.detail || 'Failed to claim challenge.');
+    }
+  };
+
   const handleRewardedAdComplete = async (reward) => {
     try {
       // Call backend API to credit coins
@@ -87,7 +124,7 @@ export default function DashboardScreen({ navigation }) {
         [
           {
             text: 'OK',
-            onPress: () => loadWallet(), // Refresh wallet balance
+            onPress: () => loadAll(), // Refresh dashboard
           },
         ]
       );
@@ -162,6 +199,97 @@ export default function DashboardScreen({ navigation }) {
           </View>
         )}
 
+        {/* Daily Challenges */}
+        {challenges && challenges.challenges && challenges.challenges.length > 0 && (
+          <View style={styles.challengesContainer}>
+            <Text style={styles.sectionTitle}>🎯 Daily Challenges</Text>
+            {challenges.challenges.map((challenge) => (
+              <View
+                key={challenge.id}
+                style={[
+                  styles.challengeCard,
+                  challenge.completed && styles.challengeCompleted,
+                ]}
+              >
+                <View style={styles.challengeHeader}>
+                  <Text style={styles.challengeTitle}>{challenge.title}</Text>
+                  {challenge.completed && (
+                    <Text style={styles.checkmark}>✓</Text>
+                  )}
+                </View>
+                <Text style={styles.challengeDescription}>{challenge.description}</Text>
+                <View style={styles.progressContainer}>
+                  <View style={styles.progressBar}>
+                    <View
+                      style={[
+                        styles.progressFill,
+                        {
+                          width: `${Math.min(
+                            (challenge.progress / challenge.target) * 100,
+                            100
+                          )}%`,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.progressText}>
+                    {challenge.progress} / {challenge.target}
+                  </Text>
+                </View>
+                <View style={styles.challengeFooter}>
+                  <Text style={styles.challengeReward}>
+                    Reward: {challenge.reward} coins
+                  </Text>
+                  {challenge.completed && !challenge.claimed && (
+                    <TouchableOpacity
+                      style={styles.claimButton}
+                      onPress={() => claimChallenge(challenge.id)}
+                    >
+                      <Text style={styles.claimButtonText}>Claim</Text>
+                    </TouchableOpacity>
+                  )}
+                  {challenge.completed && challenge.claimed && (
+                    <Text style={styles.claimedText}>Already claimed</Text>
+                  )}
+                </View>
+              </View>
+            ))}
+            {challenges.total_rewards_available > 0 && (
+              <View style={styles.rewardsAvailableCard}>
+                <Text style={styles.rewardsAvailableText}>
+                  💰 {challenges.total_rewards_available} coins available to claim!
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Achievements Preview */}
+        {achievements && achievements.unlocked && achievements.unlocked.length > 0 && (
+          <View style={styles.achievementsContainer}>
+            <View style={styles.achievementsHeader}>
+              <Text style={styles.sectionTitle}>
+                🏆 Achievements ({achievements.total_unlocked}/{achievements.total_available})
+              </Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Achievements')}
+              >
+                <Text style={styles.viewAllText}>View All →</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.achievementsGrid}>
+              {achievements.unlocked.slice(0, 4).map((achievement) => (
+                <View key={achievement.id} style={styles.achievementPreview}>
+                  <Text style={styles.achievementIcon}>{achievement.icon}</Text>
+                  <Text style={styles.achievementName} numberOfLines={1}>
+                    {achievement.name}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         <View style={styles.actions}>
           <TouchableOpacity
             style={styles.actionButton}
@@ -192,14 +320,40 @@ export default function DashboardScreen({ navigation }) {
           >
             <Text style={styles.actionButtonText}>Referrals</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => {
+              showInterstitial();
+              navigation.navigate('Achievements');
+            }}
+          >
+            <Text style={styles.actionButtonText}>Achievements</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => {
+              showInterstitial();
+              navigation.navigate('Profile');
+            }}
+          >
+            <Text style={styles.actionButtonText}>Profile</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>Your Referral Code</Text>
           <Text style={styles.referralCode}>{user?.ref_code}</Text>
           <Text style={styles.infoText}>
-            Share this code with friends to earn bonuses!
+            Share this code with friends to earn bonuses! You get 50 coins, they get 20 coins.
           </Text>
+          {user?.ref_code && (
+            <SocialShare
+              type="referral"
+              referralLink={`https://nepearn.vercel.app/register?ref=${user.ref_code}`}
+            />
+          )}
         </View>
 
         {/* Rewarded Ad Section */}
@@ -398,6 +552,156 @@ const styles = StyleSheet.create({
   analyticsLabel: {
     fontSize: 12,
     color: '#94a3b8',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 16,
+  },
+  challengesContainer: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  challengeCard: {
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  challengeCompleted: {
+    borderColor: '#10b981',
+    backgroundColor: '#10b981',
+    opacity: 0.1,
+  },
+  challengeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  challengeTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+    flex: 1,
+  },
+  checkmark: {
+    fontSize: 18,
+    color: '#10b981',
+  },
+  challengeDescription: {
+    fontSize: 14,
+    color: '#94a3b8',
+    marginBottom: 12,
+  },
+  progressContainer: {
+    marginBottom: 12,
+  },
+  progressBar: {
+    width: '100%',
+    height: 8,
+    backgroundColor: '#334155',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#10b981',
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    textAlign: 'right',
+  },
+  challengeFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  challengeReward: {
+    fontSize: 14,
+    color: '#10b981',
+    fontWeight: '600',
+  },
+  claimButton: {
+    backgroundColor: '#10b981',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  claimButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  claimedText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontStyle: 'italic',
+  },
+  rewardsAvailableCard: {
+    backgroundColor: '#10b981',
+    opacity: 0.1,
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#10b981',
+  },
+  rewardsAvailableText: {
+    color: '#10b981',
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  achievementsContainer: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  achievementsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  viewAllText: {
+    color: '#10b981',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  achievementsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  achievementPreview: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: '#10b981',
+    opacity: 0.1,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#10b981',
+  },
+  achievementIcon: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  achievementName: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
+    textAlign: 'center',
   },
 });
 
